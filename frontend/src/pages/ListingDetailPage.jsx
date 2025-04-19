@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Package, DollarSign, Truck, Clock, Users, FileText, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, Package, DollarSign, Truck, Clock, Users, FileText, AlertCircle, X, ChevronLeft, ChevronRight, Maximize } from 'lucide-react';
 
 export default function ListingDetailPage() {
   const { id } = useParams();
@@ -15,6 +15,8 @@ export default function ListingDetailPage() {
     phone: '',
     message: ''
   });
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [fullscreenImage, setFullscreenImage] = useState(false);
 
   useEffect(() => {
     const fetchListingDetails = async () => {
@@ -51,8 +53,6 @@ export default function ListingDetailPage() {
 
   const handleContactSubmit = (e) => {
     e.preventDefault();
-    // Here you would implement the logic to send the contact request
-    // For now, just show a success message
     alert('Your contact request has been sent to the farmer!');
     setContactFormVisible(false);
     setContactForm({
@@ -61,6 +61,26 @@ export default function ListingDetailPage() {
       phone: '',
       message: ''
     });
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex(prev => 
+      prev === listing.images.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex(prev => 
+      prev === 0 ? listing.images.length - 1 : prev - 1
+    );
+  };
+
+  const goToImage = (index) => {
+    setCurrentImageIndex(index);
+  };
+
+  const toggleFullscreen = () => {
+    setFullscreenImage(!fullscreenImage);
   };
 
   if (loading) {
@@ -119,19 +139,77 @@ export default function ListingDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3">
           {/* Left column - Images and main details */}
           <div className="lg:col-span-2 p-6 lg:border-r border-gray-200">
-            {/* Image gallery - placeholder for now */}
-            <div className="mb-6 h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+            {/* Image gallery */}
+            <div className="mb-6 relative group">
               {listing.images && listing.images.length > 0 ? (
-                <img 
-                  src={`http://localhost:3000/${listing.images[0]}`} 
-                  alt={listing.cropName}
-                  className="h-full w-full object-cover rounded-lg"
-                />
+                <>
+                  <div className="relative h-64 md:h-96 bg-gray-200 rounded-lg overflow-hidden">
+                    <img 
+                      src={`http://localhost:3000/${listing.images[currentImageIndex]}`} 
+                      alt={`${listing.cropName} - ${currentImageIndex + 1}`}
+                      className="h-full w-full object-cover"
+                      onClick={toggleFullscreen}
+                    />
+                    
+                    {/* Navigation arrows */}
+                    {listing.images.length > 1 && (
+                      <>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+                        >
+                          <ChevronLeft size={24} />
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+                        >
+                          <ChevronRight size={24} />
+                        </button>
+                      </>
+                    )}
+                    
+                    {/* Fullscreen button */}
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
+                      className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+                    >
+                      <Maximize size={20} />
+                    </button>
+                    
+                    {/* Image counter */}
+                    <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded-md text-sm">
+                      {currentImageIndex + 1} / {listing.images.length}
+                    </div>
+                  </div>
+                  
+                  {/* Thumbnail navigation */}
+                  {listing.images.length > 1 && (
+                    <div className="flex gap-2 mt-3 overflow-x-auto py-2">
+                      {listing.images.map((img, index) => (
+                        <button
+                          key={index}
+                          onClick={() => goToImage(index)}
+                          className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 ${currentImageIndex === index ? 'border-green-500' : 'border-transparent'}`}
+                        >
+                          <img 
+                            src={`http://localhost:3000/${img}`} 
+                            alt={`Thumbnail ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
               ) : (
-                <span className="text-gray-500">No images available</span>
+                <div className="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+                  <span className="text-gray-500">No images available</span>
+                </div>
               )}
             </div>
             
+            {/* Rest of your existing content... */}
             {/* Header with status */}
             <div className="flex justify-between items-start mb-4">
               <h1 className="text-3xl font-bold text-green-700">{listing.cropName}</h1>
@@ -281,21 +359,21 @@ export default function ListingDetailPage() {
           <div className="p-6 bg-gray-50">
             <div className="sticky top-24">
               <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-                <h2 className="text-xl font-semibold text-green-700 mb-4">Interest & Negotiation</h2>
+                <h2 className="text-xl font-semibold text-green-700 mb-4">Price Details</h2>
                 
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Expected Price:</span>
+                    <span className="text-gray-600">Price:</span>
                     <span className="font-semibold">₹{listing.expectedPrice}/{listing.quantityUnit}</span>
                   </div>
-                  <div className="flex justify-between">
+                  {/* <div className="flex justify-between">
                     <span className="text-gray-600">Minimum Price:</span>
                     <span className="font-semibold">₹{listing.minPrice}/{listing.quantityUnit}</span>
-                  </div>
+                  </div> */}
                   <div className="flex justify-between">
                     <span className="text-gray-600">Advance Required:</span>
                     <span className="font-semibold">
-                      {listing.requiresAdvance ? `Yes (₹${listing.advanceAmount})` : 'No'}
+                      {listing.requiresAdvance ? `Yes (${listing.advanceAmount}%)` : 'No'}
                     </span>
                   </div>
                 </div>
@@ -316,10 +394,10 @@ export default function ListingDetailPage() {
                     <span className="text-gray-600">Listed On:</span>
                     <span>{new Date(listing.createdAt).toLocaleDateString()}</span>
                   </div>
-                  <div className="flex justify-between">
+                  {/* <div className="flex justify-between">
                     <span className="text-gray-600">Listing ID:</span>
                     <span className="font-mono">{listing._id.substring(0, 8)}...</span>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
@@ -399,6 +477,66 @@ export default function ListingDetailPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Fullscreen Image Viewer */}
+      {fullscreenImage && listing.images && listing.images.length > 0 && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col items-center justify-center p-4">
+          <button 
+            onClick={toggleFullscreen}
+            className="absolute top-4 right-4 text-white p-2 rounded-full hover:bg-white hover:bg-opacity-20"
+          >
+            <X size={24} />
+          </button>
+          
+          <div className="relative w-full h-full max-w-6xl max-h-[90vh] flex items-center justify-center">
+            <img 
+              src={`http://localhost:3000/${listing.images[currentImageIndex]}`} 
+              alt={`Fullscreen - ${listing.cropName}`}
+              className="max-w-full max-h-full object-contain"
+            />
+            
+            {listing.images.length > 1 && (
+              <>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-70 transition-all"
+                >
+                  <ChevronLeft size={32} />
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-70 transition-all"
+                >
+                  <ChevronRight size={32} />
+                </button>
+              </>
+            )}
+          </div>
+          
+          {/* Thumbnail navigation */}
+          {listing.images.length > 1 && (
+            <div className="flex gap-2 mt-4 overflow-x-auto py-2 max-w-full">
+              {listing.images.map((img, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToImage(index)}
+                  className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 ${currentImageIndex === index ? 'border-green-500' : 'border-transparent'}`}
+                >
+                  <img 
+                    src={`http://localhost:3000/${img}`} 
+                    alt={`Thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+          
+          <div className="text-white mt-2">
+            {currentImageIndex + 1} / {listing.images.length}
           </div>
         </div>
       )}

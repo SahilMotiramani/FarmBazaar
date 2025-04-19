@@ -130,12 +130,6 @@ function App() {
                ? <AddListingPage user={user} /> 
                : <Navigate to="/login" />
             } />
-            <Route path="/editlisting/:id" element={
-  isAuthenticated && user?.userType === 'farmer'
-    ? <EditListingPage user={user} />
-    : <Navigate to="/login" />
-} />
-            
             <Route path="*" element={<NotFoundPage />} />
 
           </Routes>

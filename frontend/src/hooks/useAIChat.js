@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import DOMPurify from 'dompurify';
 
-const API_KEY = "AIzaSyDYajWAeVRqI91N7sZYkPXucIQejq1UqsE";
+const API_KEY =  "AIzaSyDYajWAeVRqI91N7sZYkPXucIQejq1UqsE";
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 const SYSTEM_PROMPT = `You are now an AI assistant integrated into FarmBazaar, an agricultural marketplace platform that connects farmers and buyers in India.
