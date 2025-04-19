@@ -9,11 +9,12 @@ import Marketplace from './pages/MarketPlace';
 import ListingDetailPage from './pages/ListingDetailPage';
 import ChatbotPage from './pages/ChatbotPage';
 import ChatbotWidget from './components/Chatbot/ChatbotWidget';
+import FarmerDashboardPage from './pages/FarmerDashboard';
+import EditListingPage from './pages/EditListingPage';
 
 // Placeholder pages
 const AboutPage = () => <div className="py-20 px-4 max-w-7xl mx-auto"><h1>About Us</h1></div>;
 const ServicesPage = () => <div className="py-20 px-4 max-w-7xl mx-auto"><h1>Services</h1></div>;
-const FarmerDashboardPage = () => <div className="py-20 px-4 max-w-7xl mx-auto"><h1>Farmer Dashboard</h1></div>;
 const NotFoundPage = () => <div className="py-20 px-4 max-w-7xl mx-auto"><h1>404 Not Found</h1></div>;
 
 function App() {
@@ -109,7 +110,7 @@ function App() {
             <Route path="/listing/:id" element={<ListingDetailPage />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/chatbot" element={<ChatbotPage user={user} />} />
-            <Route path="/farmer-dashboard" element={
+            <Route path="/farmerdashboard" element={
               isAuthenticated && user?.userType === 'farmer' 
                 ? <FarmerDashboardPage /> 
                 : <Navigate to="/login" />
@@ -129,7 +130,14 @@ function App() {
                ? <AddListingPage user={user} /> 
                : <Navigate to="/login" />
             } />
+            <Route path="/editlisting/:id" element={
+            isAuthenticated && user?.userType === 'farmer'
+              ? <EditListingPage user={user} />
+              : <Navigate to="/login" />
+            } />
+            
             <Route path="*" element={<NotFoundPage />} />
+
           </Routes>
         </main>
         

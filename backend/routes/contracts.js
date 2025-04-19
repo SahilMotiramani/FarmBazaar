@@ -12,6 +12,12 @@ router.route('/')
   .get(contractController.getAllContracts)
   .post(contractController.processUploads, contractController.createContract);
 
+router.route('/my-listings')
+  .get(contractController.getMyListings);
+
+router.route('/active')
+  .get(contractController.getActiveContracts);
+
 router.route('/:id')
   .get(contractController.getContract)
   .put(contractController.processUploads, contractController.updateContract)

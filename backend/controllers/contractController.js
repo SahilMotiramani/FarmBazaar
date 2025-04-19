@@ -161,6 +161,45 @@ exports.updateContract = async (req, res) => {
     });
   }
 };
+exports.getMyListings = async (req, res) => {
+  try {
+    const listings = await Contract.find({ 
+      createdBy: req.user.id,
+      status: { $in: ['Active', 'Pending'] } // Include both active and pending listings
+    }).populate('createdBy', 'name email');
+
+    res.status(200).json({
+      status: 'success',
+      results: listings.length,
+      listings
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err.message
+    });
+  }
+};
+
+exports.getActiveContracts = async (req, res) => {
+  try {
+    const contracts = await Contract.find({
+      createdBy: req.user.id,
+      status: 'Active'
+    }).populate('createdBy', 'name email');
+
+    res.status(200).json({
+      status: 'success',
+      results: contracts.length,
+      contracts
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err.message
+    });
+  }
+};
 
 exports.deleteContract = async (req, res) => {
   try {

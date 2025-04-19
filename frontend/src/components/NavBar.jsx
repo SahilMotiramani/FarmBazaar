@@ -54,10 +54,10 @@ export default function Navbar({ isAuthenticated, user, onLogout, cartItemCount 
               <>
                 {user?.userType === 'farmer' && (
                   <>
-                    <Link to="/farmer-dashboard" className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</Link>
-                    <Link to="/add-listing" className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                    <Link to="/farmerdashboard" className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</Link>
+                    {/* <Link to="/add-listing" className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
                       <Plus size={18} className="mr-1" /> Add Listing
-                    </Link>
+                    </Link> */}
                     
                     <div className="relative">
                       <button 
@@ -86,14 +86,12 @@ export default function Navbar({ isAuthenticated, user, onLogout, cartItemCount 
                 )}
                 
                 
-                <Link to="/chatbot" className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
-                  <MessageSquare size={18} className="mr-1" /> Chatbot
-                </Link>
+                
                 <button 
                   onClick={handleLogout}
                   className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium flex items-center"
                 >
-                  <LogOut size={18} className="mr-1" /> Sign Out
+                  <LogOut size={18} className="mr-1" /> 
                 </button>
               </>
             )}
@@ -127,10 +125,10 @@ export default function Navbar({ isAuthenticated, user, onLogout, cartItemCount 
               <>
                 {user?.userType === 'farmer' && (
                   <>
-                    <Link to="/farmer-dashboard" className="text-white hover:bg-green-600 block px-3 py-2 rounded-md text-base font-medium">Dashboard</Link>
-                    <Link to="/add-listing" className="text-white hover:bg-green-600  px-3 py-2 rounded-md text-base font-medium flex items-center">
+                    <Link to="/farmerdashboard" className="text-white hover:bg-green-600 block px-3 py-2 rounded-md text-base font-medium">Dashboard</Link>
+                    {/* <Link to="/add-listing" className="text-white hover:bg-green-600  px-3 py-2 rounded-md text-base font-medium flex items-center">
                       <Plus size={18} className="mr-1" /> Add Listing
-                    </Link>
+                    </Link> */}
                     <Link to="/notifications" className="text-white hover:bg-green-600  px-3 py-2 rounded-md text-base font-medium flex items-center">
                       <Bell size={18} className="mr-2" /> Notifications
                     </Link>
@@ -164,14 +162,12 @@ export default function Navbar({ isAuthenticated, user, onLogout, cartItemCount 
                 )}
                 
                 
-                <Link to="/chatbot" className="text-white hover:bg-green-600  px-3 py-2 rounded-md text-base font-medium flex items-center">
-                  <MessageSquare size={18} className="mr-2" /> Chatbot
-                </Link>
+                
                 <button 
                   onClick={handleLogout}
                   className="text-white hover:bg-green-600  px-3 py-2 rounded-md text-base font-medium flex items-center"
                 >
-                  <LogOut size={18} className="mr-2" /> Sign Out
+                  <LogOut size={18} className="mr-2" /> 
                 </button>
               </>
             )}
