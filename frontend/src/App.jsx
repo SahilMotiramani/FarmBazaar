@@ -10,7 +10,11 @@ import ListingDetailPage from './pages/ListingDetailPage';
 import ChatbotPage from './pages/ChatbotPage';
 import ChatbotWidget from './components/Chatbot/ChatbotWidget';
 import FarmerDashboardPage from './pages/FarmerDashboard';
+import EducationPage from './pages/EducationPage';
 import EditListingPage from './pages/EditListingPage';
+// Import new AI prediction pages
+import CropPredictionPage from './pages/CropPredictionPage';
+
 
 // Placeholder pages
 const AboutPage = () => <div className="py-20 px-4 max-w-7xl mx-auto"><h1>About Us</h1></div>;
@@ -115,6 +119,11 @@ function App() {
                 ? <FarmerDashboardPage /> 
                 : <Navigate to="/login" />
             } />
+            <Route path="/education" element={
+              isAuthenticated && user?.userType === 'farmer' 
+                ? <EducationPage /> 
+                : <Navigate to="/login" />
+            } />
             <Route path="/signup" element={
               !isAuthenticated 
                 ? <AuthPage onLogin={handleLogin} isLogin={false} /> 
@@ -125,13 +134,27 @@ function App() {
                 ? <AuthPage onLogin={handleLogin} isLogin={true} /> 
                 : <Navigate to="/" />
             } />
-             <Route path="/add-listing" element={
+            <Route path="/add-listing" element={
               isAuthenticated && user?.userType === 'farmer' 
                ? <AddListingPage user={user} /> 
                : <Navigate to="/login" />
             } />
-            <Route path="*" element={<NotFoundPage />} />
+            <Route path="/editlisting/:id" element={
+             isAuthenticated && user?.userType === 'farmer'
+            ? <EditListingPage user={user} />
+            : <Navigate to="/login" />
+            } />
 
+            {/* Add new AI related routes */}
+            <Route path="/ai/crop-prediction" element={
+              isAuthenticated && user?.userType === 'farmer'
+              ? <CropPredictionPage user={user} />
+              : <Navigate to="/login" />
+            } />
+            
+            
+            
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>
         
