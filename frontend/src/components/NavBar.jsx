@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, ChevronDown, Bell, MessageSquare, FileText, Brain, BookOpen, LogOut, Plus } from 'lucide-react';
+import { Menu, X, ChevronDown, Bell, MessageSquare, FileText, Brain, BookOpen, LogOut, Plus, Newspaper } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
@@ -55,21 +55,22 @@ export default function Navbar({ isAuthenticated, user, onLogout, cartItemCount 
                 {user?.userType === 'farmer' && (
                   <>
                     <Link to="/farmerdashboard" className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</Link>
-                    {/* <Link to="/add-listing" className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
-                      <Plus size={18} className="mr-1" /> Add Listing
-                    </Link> */}
+                    
+                    {/* Add News Feed link */}
+                    <Link to="/news" className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                      <Newspaper size={18} className="mr-1" /> News Feed
+                    </Link>
                     
                     <div className="relative">
                       <button 
                         onClick={toggleAiDropdown} 
                         className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium flex items-center"
                       >
-                        <Brain size={18} className="mr-1" /> AI Predictor <ChevronDown size={16} className="ml-1" />
+                        <Brain size={18} className="mr-1" /> Tools <ChevronDown size={16} className="ml-1" />
                       </button>
                       {aiDropdownOpen && (
                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                          <Link to="/ai/crop-prediction" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Crop Prediction</Link>
-                          <Link to="/ai/price-forecast" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Price Forecast</Link>
+                          <Link to="/ai/crop-prediction" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Crop Yield and Price Prediction</Link>
                           <Link to="/ai/disease-detection" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Disease Detection</Link>
                         </div>
                       )}
@@ -84,8 +85,6 @@ export default function Navbar({ isAuthenticated, user, onLogout, cartItemCount 
                 {user?.userType === 'buyer' && (
                   <Link to="/buyer-dashboard" className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</Link>
                 )}
-                
-                
                 
                 <button 
                   onClick={handleLogout}
@@ -126,10 +125,13 @@ export default function Navbar({ isAuthenticated, user, onLogout, cartItemCount 
                 {user?.userType === 'farmer' && (
                   <>
                     <Link to="/farmerdashboard" className="text-white hover:bg-green-600 block px-3 py-2 rounded-md text-base font-medium">Dashboard</Link>
-                    {/* <Link to="/add-listing" className="text-white hover:bg-green-600  px-3 py-2 rounded-md text-base font-medium flex items-center">
-                      <Plus size={18} className="mr-1" /> Add Listing
-                    </Link> */}
-                    <Link to="/notifications" className="text-white hover:bg-green-600  px-3 py-2 rounded-md text-base font-medium flex items-center">
+                    
+                    {/* Add News Feed link to mobile menu */}
+                    <Link to="/news" className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-base font-medium flex items-center">
+                      <Newspaper size={18} className="mr-2" /> News Feed
+                    </Link>
+                    
+                    <Link to="/notifications" className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-base font-medium flex items-center">
                       <Bell size={18} className="mr-2" /> Notifications
                     </Link>
                     <div>
@@ -161,11 +163,9 @@ export default function Navbar({ isAuthenticated, user, onLogout, cartItemCount 
                   <Link to="/buyer-dashboard" className="text-white hover:bg-green-600 block px-3 py-2 rounded-md text-base font-medium">Dashboard</Link>
                 )}
                 
-                
-                
                 <button 
                   onClick={handleLogout}
-                  className="text-white hover:bg-green-600  px-3 py-2 rounded-md text-base font-medium flex items-center"
+                  className="text-white hover:bg-green-600 px-3 py-2 rounded-md text-base font-medium flex items-center"
                 >
                   <LogOut size={18} className="mr-2" /> 
                 </button>

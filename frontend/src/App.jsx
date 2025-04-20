@@ -14,6 +14,7 @@ import EducationPage from './pages/EducationPage';
 import EditListingPage from './pages/EditListingPage';
 // Import new AI prediction pages
 import CropPredictionPage from './pages/CropPredictionPage';
+import NewsFeedPage from './pages/NewsFeedPage';
 
 
 // Placeholder pages
@@ -133,6 +134,11 @@ function App() {
               !isAuthenticated 
                 ? <AuthPage onLogin={handleLogin} isLogin={true} /> 
                 : <Navigate to="/" />
+            } />
+            <Route path="/news" element={
+              isAuthenticated && user?.userType === 'farmer'
+              ? <NewsFeedPage />
+              : <Navigate to="/login" />
             } />
             <Route path="/add-listing" element={
               isAuthenticated && user?.userType === 'farmer' 

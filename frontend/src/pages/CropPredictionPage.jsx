@@ -281,7 +281,7 @@ export default function CropPredictionPage() {
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-md p-2 focus:ring-green-500 focus:border-green-500"
               >
-                {Array.from({ length: 24 }, (_, i) => 1997 + i).map(year => (
+                {Array.from({ length: 35 }, (_, i) => 1997 + i).map(year => (
                   <option key={year} value={year.toString()}>{year}</option>
                 ))}
               </select>

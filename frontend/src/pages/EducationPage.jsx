@@ -5,47 +5,48 @@ const EducationPage = () => {
   // Sample video data - replace with your actual content
   const farmerVideos = [
     {
-      id: 1,
-      title: 'Organic Farming Techniques',
-      youtubeId: 'dQw4w9WgXcQ', // Replace with actual YouTube ID
-      description: 'Learn modern organic farming methods to increase yield',
-      duration: '12:34'
+      "id": 1,
+      "title": "Organic Farming Techniques",
+      "youtubeId": "SOcxRMOjXWY", // Replace with actual YouTube ID
+      "description": "Learn modern organic farming methods to increase yield",
+      "duration": "41:42"
     },
     {
-      id: 2,
-      title: 'Sustainable Agriculture',
-      youtubeId: 'dQw4w9WgXcQ', // Replace with actual YouTube ID
-      description: 'Best practices for sustainable farming',
-      duration: '15:20'
+      "id": 2,
+      "title": "Sustainable Agriculture",
+      "youtubeId": "MJ0uoV7lURs", // Replace with actual YouTube ID
+      "description": "Best practices for sustainable farming",
+      "duration": "15:20"
     },
     {
-      id: 3,
-      title: 'Crop Rotation Guide',
-      youtubeId: 'dQw4w9WgXcQ', // Replace with actual YouTube ID
-      description: 'How to implement effective crop rotation',
-      duration: '08:45'
+      "id": 3,
+      "title": "Crop Rotation Guide",
+      "youtubeId": "weovm6S_B_4", // Replace with actual YouTube ID
+      "description": "How to implement effective crop rotation",
+      "duration": "08:45"
     },
     {
-      id: 4,
-      title: 'Soil Health Management',
-      youtubeId: 'dQw4w9WgXcQ', // Replace with actual YouTube ID
-      description: 'Improving and maintaining healthy soil',
-      duration: '18:12'
+      "id": 4,
+      "title": "Soil Health Management",
+      "youtubeId": "H1g01x4lRLM", // Replace with actual YouTube ID
+      "description": "Improving and maintaining healthy soil",
+      "duration": "18:12"
     }
-  ];
+  ]
+  
 
   // Sample courses data
   const courses = [
     {
       id: 1,
-      title: 'Affiliate Marketing Basics',
-      provider: 'Farm Marketing Institute',
+      title: 'Farming Basics',
+      provider: 'Farm Institute',
       duration: '4 weeks',
       level: 'Beginner'
     },
     {
       id: 2,
-      title: 'Digital Marketing for Farmers',
+      title: 'Farmers Busniess',
       provider: 'Agri Business Academy',
       duration: '6 weeks',
       level: 'Intermediate'
