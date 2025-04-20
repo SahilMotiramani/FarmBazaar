@@ -16,4 +16,5 @@ build/
 .DS_Store
 
 model_features.pkl
-crop_yield_model.pkl
+/models/yield_prediction model/crop_yield_model.pkl
+models/yield_prediction model/crop_yield_model.pkl
