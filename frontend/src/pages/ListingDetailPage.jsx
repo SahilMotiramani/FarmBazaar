@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Package, DollarSign, Truck, Clock, Users, FileText, AlertCircle, X, ChevronLeft, ChevronRight, Maximize } from 'lucide-react';
+import { 
+  Calendar, MapPin, Package, DollarSign, Truck, Clock, 
+  Users, FileText, AlertCircle, X, ChevronLeft, 
+  ChevronRight, Maximize, Check, Loader2, Wallet 
+} from 'lucide-react';
 
 export default function ListingDetailPage() {
   const { id } = useParams();
@@ -8,15 +12,26 @@ export default function ListingDetailPage() {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [contactFormVisible, setContactFormVisible] = useState(false);
-  const [contactForm, setContactForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    message: ''
-  });
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [fullscreenImage, setFullscreenImage] = useState(false);
+  
+  // Contract form state
+  const [contractFormVisible, setContractFormVisible] = useState(false);
+  const [contractForm, setContractForm] = useState({
+    quantity: '',
+    agreedPrice: '',
+    deliveryDate: '',
+    buyerWalletAddress: '',
+    acceptTerms: false,
+    useEscrow: false,
+    escrowPercentage: '10'
+  });
+  
+  // Blockchain transaction state
+  const [transactionStatus, setTransactionStatus] = useState(null);
+  const [txHash, setTxHash] = useState(null);
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState('');
 
   useEffect(() => {
     const fetchListingDetails = async () => {
@@ -28,6 +43,13 @@ export default function ListingDetailPage() {
         if (response.ok) {
           const data = await response.json();
           setListing(data.contract);
+          // Initialize contract form with listing details
+          setContractForm(prev => ({
+            ...prev,
+            quantity: data.contract.quantity,
+            agreedPrice: data.contract.expectedPrice,
+            deliveryDate: data.contract.expectedYieldDate.split('T')[0]
+          }));
         } else {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to fetch listing details');
@@ -43,26 +65,97 @@ export default function ListingDetailPage() {
     fetchListingDetails();
   }, [id]);
 
-  const handleContactFormChange = (e) => {
-    const { name, value } = e.target;
-    setContactForm(prev => ({
+  // Connect to wallet (simplified for demo)
+  const connectWallet = async () => {
+    try {
+      // In a real app, you would use Web3Modal or similar to connect to MetaMask
+      // This is a simplified version for demonstration
+      const mockAddress = `0x${Math.random().toString(16).substr(2, 40)}`;
+      setWalletAddress(mockAddress);
+      setWalletConnected(true);
+      setContractForm(prev => ({
+        ...prev,
+        buyerWalletAddress: mockAddress
+      }));
+    } catch (err) {
+      console.error('Error connecting wallet:', err);
+      alert('Failed to connect wallet');
+    }
+  };
+
+  const handleContractFormChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setContractForm(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
-  const handleContactSubmit = (e) => {
+  const handleContractSubmit = async (e) => {
     e.preventDefault();
-    alert('Your contact request has been sent to the farmer!');
-    setContactFormVisible(false);
-    setContactForm({
-      name: '',
-      email: '',
-      phone: '',
-      message: ''
-    });
+    
+    try {
+      setTransactionStatus('processing');
+      
+      // Validate form
+      if (!contractForm.acceptTerms) {
+        throw new Error('You must accept the terms and conditions');
+      }
+      
+      if (parseFloat(contractForm.quantity) > listing.quantity) {
+        throw new Error('Requested quantity exceeds available quantity');
+      }
+      
+      if (parseFloat(contractForm.agreedPrice) < listing.minPrice) {
+        throw new Error(`Price must be at least ₹${listing.minPrice} per ${listing.quantityUnit}`);
+      }
+      
+      if (listing.useSmartContract && !walletConnected) {
+        throw new Error('Please connect your wallet first');
+      }
+      
+      // Simulate blockchain transaction
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // For demo purposes, we'll simulate a successful transaction
+      const mockTxHash = `0x${Math.random().toString(16).substr(2, 64)}`;
+      setTxHash(mockTxHash);
+      
+      // Send contract details to backend
+      const response = await fetch(`http://localhost:3000/api/v1/contracts/${id}/create-agreement`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...contractForm,
+          txHash: mockTxHash,
+          buyerWalletAddress: contractForm.buyerWalletAddress,
+          farmerWalletAddress: listing.walletAddress,
+          blockchain: listing.preferredBlockchain
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save contract details');
+      }
+      
+      setTransactionStatus('success');
+      
+      // Redirect to contract view after 3 seconds
+      setTimeout(() => {
+        navigate(`/contracts/${id}`);
+      }, 3000);
+      
+    } catch (err) {
+      console.error('Error creating contract:', err);
+      setTransactionStatus('error');
+      alert(err.message);
+    }
   };
 
+  // Image handling functions
   const nextImage = () => {
     setCurrentImageIndex(prev => 
       prev === listing.images.length - 1 ? 0 : prev + 1
@@ -209,7 +302,6 @@ export default function ListingDetailPage() {
               )}
             </div>
             
-            {/* Rest of your existing content... */}
             {/* Header with status */}
             <div className="flex justify-between items-start mb-4">
               <h1 className="text-3xl font-bold text-green-700">{listing.cropName}</h1>
@@ -295,6 +387,14 @@ export default function ListingDetailPage() {
                   <p className="text-sm text-gray-500">Farm Area</p>
                   <p>{listing.farmArea} {listing.areaUnit}</p>
                 </div>
+                {listing.useSmartContract && (
+                  <div>
+                    <p className="text-sm text-gray-500">Farmer's Wallet</p>
+                    <p className="font-mono text-sm">
+                      {listing.walletAddress.substring(0, 6)}...{listing.walletAddress.substring(38)}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -351,6 +451,16 @@ export default function ListingDetailPage() {
                     <p>{listing.paymentMode}</p>
                   </div>
                 </div>
+
+                {listing.useSmartContract && (
+                  <div className="flex items-start">
+                    <Wallet className="mr-2 text-green-600 mt-1" size={20} />
+                    <div>
+                      <p className="text-sm text-gray-500">Blockchain</p>
+                      <p>{listing.preferredBlockchain}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -366,10 +476,10 @@ export default function ListingDetailPage() {
                     <span className="text-gray-600">Price:</span>
                     <span className="font-semibold">₹{listing.expectedPrice}/{listing.quantityUnit}</span>
                   </div>
-                  {/* <div className="flex justify-between">
+                  <div className="flex justify-between">
                     <span className="text-gray-600">Minimum Price:</span>
                     <span className="font-semibold">₹{listing.minPrice}/{listing.quantityUnit}</span>
-                  </div> */}
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Advance Required:</span>
                     <span className="font-semibold">
@@ -379,10 +489,10 @@ export default function ListingDetailPage() {
                 </div>
                 
                 <button 
-                  onClick={() => setContactFormVisible(true)}
+                  onClick={() => setContractFormVisible(true)}
                   className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md font-medium"
                 >
-                  Contact Farmer
+                  Create Contract
                 </button>
               </div>
               
@@ -394,10 +504,12 @@ export default function ListingDetailPage() {
                     <span className="text-gray-600">Listed On:</span>
                     <span>{new Date(listing.createdAt).toLocaleDateString()}</span>
                   </div>
-                  {/* <div className="flex justify-between">
-                    <span className="text-gray-600">Listing ID:</span>
-                    <span className="font-mono">{listing._id.substring(0, 8)}...</span>
-                  </div> */}
+                  {listing.useSmartContract && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Blockchain:</span>
+                      <span>{listing.preferredBlockchain}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -405,78 +517,176 @@ export default function ListingDetailPage() {
         </div>
       </div>
       
-      {/* Contact Form Modal */}
-      {contactFormVisible && (
+      {/* Contract Form Modal */}
+      {contractFormVisible && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-semibold mb-4">Contact Farmer</h2>
+            <h2 className="text-xl font-semibold mb-4">Create Farming Contract</h2>
             
-            <form onSubmit={handleContactSubmit}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={contactForm.name}
-                    onChange={handleContactFormChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={contactForm.email}
-                    onChange={handleContactFormChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={contactForm.phone}
-                    onChange={handleContactFormChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                  <textarea
-                    name="message"
-                    value={contactForm.message}
-                    onChange={handleContactFormChange}
-                    rows="4"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  ></textarea>
-                </div>
+            {transactionStatus === 'processing' ? (
+              <div className="text-center py-8">
+                <Loader2 className="animate-spin mx-auto mb-4 text-green-600" size={32} />
+                <p>Processing blockchain transaction...</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Please confirm the transaction in your wallet
+                </p>
               </div>
-              
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setContactFormVisible(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                >
-                  Send Request
-                </button>
+            ) : transactionStatus === 'success' ? (
+              <div className="text-center py-8">
+                <Check className="mx-auto mb-4 text-green-600" size={32} />
+                <h3 className="text-lg font-medium mb-2">Contract Created Successfully!</h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Transaction Hash: {txHash.substring(0, 12)}...{txHash.substring(txHash.length - 10)}
+                </p>
+                <p>Redirecting to contract page...</p>
               </div>
-            </form>
+            ) : (
+              <form onSubmit={handleContractSubmit}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity ({listing.quantityUnit})*</label>
+                    <input
+                      type="number"
+                      name="quantity"
+                      value={contractForm.quantity}
+                      onChange={handleContractFormChange}
+                      required
+                      min="1"
+                      max={listing.quantity}
+                      step="0.01"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Agreed Price (per {listing.quantityUnit})*</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500">₹</span>
+                      </div>
+                      <input
+                        type="number"
+                        name="agreedPrice"
+                        value={contractForm.agreedPrice}
+                        onChange={handleContractFormChange}
+                        required
+                        min={listing.minPrice}
+                        step="0.01"
+                        className="pl-8 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Expected Delivery Date*</label>
+                    <input
+                      type="date"
+                      name="deliveryDate"
+                      value={contractForm.deliveryDate}
+                      onChange={handleContractFormChange}
+                      required
+                      min={new Date(listing.expectedYieldDate).toISOString().split('T')[0]}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  
+                  {listing.useSmartContract && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Your Wallet Address*</label>
+                        <div className="flex">
+                          <input
+                            type="text"
+                            name="buyerWalletAddress"
+                            value={contractForm.buyerWalletAddress}
+                            onChange={handleContractFormChange}
+                            required
+                            placeholder="0x..."
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                            disabled={walletConnected}
+                          />
+                          <button
+                            type="button"
+                            onClick={connectWallet}
+                            className="px-4 py-2 bg-green-600 text-white rounded-r-md hover:bg-green-700"
+                          >
+                            {walletConnected ? 'Connected' : 'Connect'}
+                          </button>
+                        </div>
+                        {walletConnected && (
+                          <p className="text-xs text-green-600 mt-1">
+                            Connected: {walletAddress.substring(0, 6)}...{walletAddress.substring(38)}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          name="useEscrow"
+                          checked={contractForm.useEscrow}
+                          onChange={handleContractFormChange}
+                          className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                        />
+                        <label className="ml-2 block text-sm text-gray-700">Use Escrow Service</label>
+                      </div>
+                      
+                      {contractForm.useEscrow && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Escrow Percentage*</label>
+                          <select
+                            name="escrowPercentage"
+                            value={contractForm.escrowPercentage}
+                            onChange={handleContractFormChange}
+                            required
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          >
+                            <option value="10">10%</option>
+                            <option value="15">15%</option>
+                            <option value="20">20%</option>
+                            <option value="25">25%</option>
+                          </select>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
+                  <div className="flex items-start">
+                    <div className="flex items-center h-5">
+                      <input
+                        type="checkbox"
+                        name="acceptTerms"
+                        checked={contractForm.acceptTerms}
+                        onChange={handleContractFormChange}
+                        required
+                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                      />
+                    </div>
+                    <div className="ml-3 text-sm">
+                      <label className="font-medium text-gray-700">
+                        I agree to the contract terms and conditions
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setContractFormVisible(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                  >
+                    {listing.useSmartContract ? 'Create Smart Contract' : 'Create Contract'}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

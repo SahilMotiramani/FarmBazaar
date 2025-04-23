@@ -12,10 +12,10 @@ import ChatbotWidget from './components/Chatbot/ChatbotWidget';
 import FarmerDashboardPage from './pages/FarmerDashboard';
 import EducationPage from './pages/EducationPage';
 import EditListingPage from './pages/EditListingPage';
-// Import new AI prediction pages
+// Import AI prediction pages
 import CropPredictionPage from './pages/CropPredictionPage';
+import DiseaseDetectionPage from './pages/DiseaseDetectionPage';
 import NewsFeedPage from './pages/NewsFeedPage';
-
 
 // Placeholder pages
 const AboutPage = () => <div className="py-20 px-4 max-w-7xl mx-auto"><h1>About Us</h1></div>;
@@ -151,14 +151,18 @@ function App() {
             : <Navigate to="/login" />
             } />
 
-            {/* Add new AI related routes */}
+            {/* AI related routes */}
             <Route path="/ai/crop-prediction" element={
               isAuthenticated && user?.userType === 'farmer'
               ? <CropPredictionPage user={user} />
               : <Navigate to="/login" />
             } />
-            
-            
+            {/* Add disease detection route */}
+            <Route path="/ai/disease-detection" element={
+              isAuthenticated && user?.userType === 'farmer'
+              ? <DiseaseDetectionPage user={user} />
+              : <Navigate to="/login" />
+            } />
             
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
