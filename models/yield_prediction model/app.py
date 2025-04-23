@@ -5,6 +5,7 @@ import pandas as pd
 import google.generativeai as genai
 from PIL import Image
 import os
+import re
 
 genai.configure(api_key="AIzaSyDIQbk9dHbTrcnyUBlUfK2B9thI9g0uA04")
 
@@ -48,24 +49,62 @@ def predictdisease():
     
     # Enhanced prompt for more detailed disease analysis
     prompt = f"""
-    Analyze this {plant_type} plant image for diseases. Provide a detailed report with the following sections:
+    Analyze this {plant_type} plant image for diseases. Provide a detailed report with the following numbered sections:
     
-    1. DISEASE IDENTIFICATION: Identify the specific disease with scientific name
-    2. SYMPTOMS: List all visible symptoms and affected plant parts
-    3. SEVERITY: Rate severity (Mild/Moderate/Severe) and explain why
-    4. CAUSE: Explain what causes this disease (fungus, bacteria, virus, nutrient deficiency, etc.)
-    5. TREATMENT RECOMMENDATIONS: Provide specific treatments including cultural, chemical, and organic options
-    6. PREVENTIVE MEASURES: How to prevent this disease in the future
-    7. RECOVERY TIMELINE: Expected recovery time with proper treatment
-    8. ADDITIONAL NOTES: Any other important information for this specific condition
+    1. DISEASE IDENTIFICATION: 
+    - Identify the specific disease with scientific name
+    - Common name of the disease
+    - Affected plant parts
     
-    Format the response in clear sections with headings. If the plant appears healthy, state that and provide general care tips.
+    2. SYMPTOMS: 
+    - List all visible symptoms (5-7 items)
+    - Describe symptom progression
+    
+    3. SEVERITY: 
+    - Rate severity (Mild/Moderate/Severe) 
+    - Explain the rating
+    - Potential impact on yield
+    
+    4. CAUSE: 
+    - Pathogen type (fungus, bacteria, virus, etc.)
+    - Environmental contributing factors
+    - Common transmission methods
+    
+    5. TREATMENT RECOMMENDATIONS:
+    - Immediate actions (3-5 steps)
+    - Chemical treatments (if applicable)
+    - Organic/natural treatments
+    - Application methods
+    
+    6. PREVENTIVE MEASURES:
+    - Cultural practices
+    - Environmental controls
+    - Monitoring techniques
+    - Resistant varieties
+    
+    7. RECOVERY TIMELINE:
+    - Expected recovery time with treatment
+    - Key recovery milestones
+    - Signs of improvement
+    
+    8. ADDITIONAL NOTES:
+    - Any special considerations
+    - When to consult an expert
+    - Regional specific advice
+    
+    Format each section clearly with the numbered heading followed by bullet points. 
+    Use simple language but include scientific terms where appropriate.
+    If the plant appears healthy, state that and provide general care tips.
     """
     
     response = gemini_model.generate_content([prompt, image])
     
     # Process and structure the response
     result = response.text
+    
+    # Clean up the response
+    result = re.sub(r'\*\*', '', result)  # Remove markdown bold
+    result = re.sub(r'^\-', '*', result, flags=re.MULTILINE)  # Standardize bullets
     
     return jsonify({
         'result': result,
