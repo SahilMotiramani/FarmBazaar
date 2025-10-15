@@ -2,44 +2,23 @@ import { useState } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import DOMPurify from 'dompurify';
 
-const API_KEY =  "AIzaSyDYajWAeVRqI91N7sZYkPXucIQejq1UqsE";
+const API_KEY = "AIzaSyBXZjss_M1UnGePmnKY3Wjq8fkDzEP8_xU";
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-const SYSTEM_PROMPT = `You are now an AI assistant integrated into FarmBazaar, an agricultural marketplace platform that connects farmers and buyers in India.
+const SYSTEM_PROMPT = `You are an AI assistant for FarmBazaar, an agricultural marketplace in India. Keep responses concise, practical, and focused on the user's needs.
 
-You answer all farming-related questions and provide expert guidance on agriculture topics. Your goal is to support both farmers and buyers on the platform.
+Formatting guidelines:
+- Use simple bullet points (•) for lists
+- Use numbered lists only for step-by-step instructions
+- Keep paragraphs short (2-3 sentences max)
+- Bold only the most critical information
+- Avoid unnecessary introductions or conclusions
 
-Please format your responses clearly using:
-- Bullet points (- or •) for lists
-- Numbered lists (1., 2., etc.) for steps
-- Line breaks between paragraphs
-- Bold text (**text**) for important points
-- Avoid complex markdown or HTML tags
+User types:
+- Farmers: Need farming advice, pest control, pricing help
+- Buyers: Need crop info, quality assessment, market trends
 
-Example format:
-For better crop yield, consider:
-
-• Proper irrigation scheduling
-• Soil nutrient management
-• Pest control measures
-
-1. First prepare the soil
-2. Then plant the seeds
-3. Maintain regular watering
-
-For farmers, you help with:
-- Best farming practices and crop recommendations
-- Information on pesticides, fertilizers, and organic farming
-- Guidance on pricing produce competitively
-- Tips for listing items effectively
-- Crop disease identification and treatment
-
-For buyers, you help with:
-- Information about seasonal crops
-- Tips for finding quality produce
-- Knowledge about storage and preservation
-- General market trends and pricing
-- Understanding organic certification`;
+Always consider the user's region and respond in their preferred language.`;
 
 const useAIChat = ({ userType = 'guest', language = 'English', region = '' }) => {
   const [messages, setMessages] = useState([]);
@@ -50,35 +29,43 @@ const useAIChat = ({ userType = 'guest', language = 'English', region = '' }) =>
     let contextualPrompt = SYSTEM_PROMPT;
     
     if (userType === 'farmer') {
-      contextualPrompt += "\n\nThe user is a farmer selling produce on FarmBazaar.";
+      contextualPrompt += "\n\nCurrent user is a farmer. Focus on practical farming advice, crop management, and marketplace selling tips.";
     } else if (userType === 'buyer') {
-      contextualPrompt += "\n\nThe user is a buyer looking to purchase agricultural products on FarmBazaar.";
+      contextualPrompt += "\n\nCurrent user is a buyer. Focus on product quality, seasonal availability, and purchasing advice.";
     }
     
     if (region) {
-      contextualPrompt += `\n\nThe user is from the ${region} region in India.`;
+      contextualPrompt += `\n\nUser is from ${region}, India. Provide region-specific advice when possible.`;
     }
     
-    contextualPrompt += `\n\nPlease respond in ${language} and use appropriate formatting.`;
+    contextualPrompt += `\n\nResponse requirements:\n- Maximum 2-3 paragraphs\n- Use simple ${language}\n- Directly answer the question\n- Skip unnecessary details`;
     
     return contextualPrompt;
   };
 
   const formatResponse = (text) => {
-    // Convert markdown-style formatting to HTML
+    // Clean up any markdown artifacts first
     let formattedText = text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold text
-      .replace(/\n\s*[-•]\s*(.*?)(?=\n|$)/g, '<li>$1</li>') // List items
-      .replace(/(<li>.*<\/li>)+/g, '<ul>$&</ul>') // Wrap lists in ul
-      .replace(/\n\s*\d+\.\s*(.*?)(?=\n|$)/g, '<li>$1</li>') // Numbered items
-      .replace(/(<li>.*<\/li>)+/g, '<ol>$&</ol>') // Wrap numbered lists in ol
-      .replace(/\n{2,}/g, '</p><p>') // Paragraphs
-      .replace(/\n/g, '<br />'); // Line breaks
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+      .replace(/\n\s*[-•]\s*/g, '\n• ') // Standardize bullets
+      .replace(/\n\s*\d+\.\s*/g, '\n$&') // Preserve numbered lists
+      .replace(/\n{3,}/g, '\n\n'); // Remove excessive newlines
 
-    // Ensure we have proper paragraph tags
-    if (!formattedText.startsWith('<p>')) {
-      formattedText = `<p>${formattedText}</p>`;
-    }
+    // Convert to HTML paragraphs and lists
+    formattedText = formattedText
+      .split('\n\n')
+      .map(para => {
+        if (para.startsWith('•') || para.match(/^\d+\./)) {
+          const listType = para.match(/^\d+\./) ? 'ol' : 'ul';
+          const items = para.split('\n')
+            .filter(item => item.trim())
+            .map(item => `<li>${item.replace(/^[•\d+\.]\s*/, '').trim()}</li>`)
+            .join('');
+          return `<${listType}>${items}</${listType}>`;
+        }
+        return `<p>${para.trim()}</p>`;
+      })
+      .join('');
 
     return DOMPurify.sanitize(formattedText);
   };
@@ -96,17 +83,19 @@ const useAIChat = ({ userType = 'guest', language = 'English', region = '' }) =>
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       const contextualPrompt = getContextualPrompt();
       
-      const historyText = messages
+      // Keep only last 3 messages for context to avoid long prompts
+      const recentMessages = messages.slice(-3);
+      const historyText = recentMessages
         .map(msg => `${msg.type === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
         .join('\n');
       
-      const finalPrompt = `${contextualPrompt}\n\nConversation history:\n${historyText}\n\nUser: ${messageText}\nAssistant:`;
+      const finalPrompt = `${contextualPrompt}\n\nCurrent conversation:\n${historyText}\n\nUser: ${messageText}\nAssistant: (respond concisely)`;
       
       const result = await model.generateContent({
         contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 1000,
+          maxOutputTokens: 500, // Reduced from 1000 to get shorter responses
           topK: 40,
           topP: 0.95
         },
@@ -136,11 +125,11 @@ const useAIChat = ({ userType = 'guest', language = 'English', region = '' }) =>
       setMessages(prev => [...prev, { type: 'bot', content: formattedResponse }]);
       
     } catch (err) {
-      console.error('Error generating AI response:', err);
+      console.error('AI response error:', err);
       setError('Failed to get response. Please try again.');
       setMessages(prev => [...prev, { 
         type: 'bot', 
-        content: '<p>Sorry, I encountered an error. Please try again later.</p>' 
+        content: '<p>Sorry, I encountered an error. Please try again.</p>' 
       }]);
     } finally {
       setIsLoading(false);
@@ -150,8 +139,8 @@ const useAIChat = ({ userType = 'guest', language = 'English', region = '' }) =>
   const initializeChat = () => {
     if (messages.length === 0) {
       const welcomeMessage = userType === 'farmer'
-        ? '<p>Welcome to FarmBazaar Assistant! I can help you with:</p><ul><li>Farming practices</li><li>Crop pricing</li><li>Marketplace tips</li></ul><p>How can I assist you today?</p>'
-        : '<p>Welcome to FarmBazaar Assistant! I can help you with:</p><ul><li>Finding quality produce</li><li>Seasonal availability</li><li>Agricultural products</li></ul><p>How can I assist you today?</p>';
+        ? '<p>How can I help with your farming needs today?</p><ul><li>Crop advice</li><li>Pest control</li><li>Market prices</li></ul>'
+        : '<p>How can I assist with your agricultural purchases?</p><ul><li>Product info</li><li>Quality tips</li><li>Seasonal availability</li></ul>';
       
       setMessages([{ type: 'bot', content: welcomeMessage }]);
     }

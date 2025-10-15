@@ -17,7 +17,7 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
-  .then(() => console.log('Connected to local MongoDB!'))
+  .then(() => console.log('Connected to MongoDB Atlas!'))
   .catch(err => console.error('Connection error:', err));
 
 const port = process.env.PORT || 3000;

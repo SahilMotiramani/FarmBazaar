@@ -7,10 +7,10 @@ from PIL import Image
 import os
 import re
 
-genai.configure(api_key="AIzaSyDIQbk9dHbTrcnyUBlUfK2B9thI9g0uA04")
+genai.configure(api_key="AIzaSyBXZjss_M1UnGePmnKY3Wjq8fkDzEP8_xU")
 
 # Rename the Gemini model to avoid conflict
-gemini_model = genai.GenerativeModel(model_name="models/gemini-1.5-pro")
+gemini_model = genai.GenerativeModel(model_name="models/gemini-2.5-pro")
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend access

@@ -98,53 +98,7 @@ const contractSchema = new mongoose.Schema({
   },
   penaltyClauses: String,
 
-  bankName: {
-    type: String,
-    required: [true, 'Bank name is required']
-  },
-  accountNumber: {
-    type: String,
-    required: [true, 'Account number is required']
-  },
-  accountHolderName: {
-    type: String,
-    required: [true, 'Account holder name is required']
-  },
-  ifscCode: {
-    type: String,
-    required: [true, 'IFSC code is required']
-  },
-  upiId: String,
-
-  // Blockchain Smart Contract Details
-  useSmartContract: {
-    type: Boolean,
-    default: false
-  },
-  walletAddress: {
-    type: String,
-    required: function() { return this.useSmartContract; }
-  },
-  preferredBlockchain: {
-    type: String,
-    enum: ['Polygon', 'Ethereum', 'Binance Smart Chain', 'Solana'],
-    default: 'Polygon',
-    required: function() { return this.useSmartContract; }
-  },
-  escrowRequired: {
-    type: Boolean,
-    default: false
-  },
-  escrowPercentage: {
-    type: String,
-    enum: ['10', '15', '20', '25'],
-    default: '10',
-    required: function() { return this.escrowRequired; }
-  },
-  automaticPayout: {
-    type: Boolean,
-    default: true
-  },
+  // ...existing code...
   
   // Media
   images: [String],
